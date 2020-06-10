@@ -1,0 +1,25 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_reactions
+    - paragraphs.paragraphs_type.smart_content_paragraph
+  module:
+    - entity_reference_revisions
+id: paragraph.smart_content_paragraph.field_reactions
+field_name: field_reactions
+entity_type: paragraph
+bundle: smart_content_paragraph
+label: Reactions
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:paragraph'
+  handler_settings:
+    negate: 1
+    target_bundles: null
+    target_bundles_drag_drop: null
+field_type: entity_reference_revisions

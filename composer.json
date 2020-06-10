@@ -1,0 +1,20 @@
+{
+  "name": "drupal/smart_content_paragraphs",
+  "description": "Provides content personalisation functionality using Smart content segments and paragraphs.",
+  "type": "drupal-module",
+  "license": "GPL-2.0+",
+  "homepage": "https://www.drupal.org/project/smart_content_paragraphs",
+  "require": {
+    "drupal/smart_content": "1.0-beta1",
+    "drupal/smart_content_segments": "1.0-alpha2",    
+    "drupal/paragraphs": "^1.12",    
+    "drupal/countries_info": "^1.2",    
+    "drupal/geocoder": "^3.1",
+    "geocoder-php/google-maps-provider": "^4.4"
+  },
+  "minimum-stability": "dev",
+  "support": {
+    "issues": "https://www.drupal.org/project/issues/smart_content_paragraphs",
+    "source": "http://cgit.drupalcode.org/smart_content_paragraphs"
+  }
+}

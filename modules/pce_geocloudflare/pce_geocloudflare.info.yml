@@ -1,0 +1,10 @@
+name: PCE Data Plugin - Geolocation (Cloudflare)
+type: module
+description: Enables Geolocation conditions based on Cloudflare Header values for Smart Content
+core: 8.x
+package: 'Smart Content Paragraphs'
+core_version_requirement: ^8 || ^9
+dependencies:
+  - smart_content:smart_content
+  - smart_content_segments:smart_content_segments
+  - smart_content_paragraphs:smart_content_paragraphs

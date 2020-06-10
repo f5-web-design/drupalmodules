@@ -1,0 +1,60 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_variations
+    - paragraphs.paragraphs_type.smart
+    - paragraphs.paragraphs_type.smart_content_paragraph
+  module:
+    - entity_reference_revisions
+id: paragraph.smart.field_variations
+field_name: field_variations
+entity_type: paragraph
+bundle: smart
+label: 'PE Variations'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:paragraph'
+  handler_settings:
+    negate: 0
+    target_bundles:
+      smart_content_paragraph: smart_content_paragraph
+    target_bundles_drag_drop:
+      banner:
+        weight: 12
+        enabled: false
+      from_library:
+        weight: 13
+        enabled: false
+      image_text:
+        weight: 14
+        enabled: false
+      images:
+        weight: 15
+        enabled: false
+      nested_paragraph:
+        weight: 16
+        enabled: false
+      personalization:
+        weight: 17
+        enabled: false
+      smart:
+        weight: 18
+        enabled: false
+      smart_content_paragraph:
+        enabled: true
+        weight: 19
+      text:
+        weight: 20
+        enabled: false
+      text_image:
+        weight: 21
+        enabled: false
+      user:
+        weight: 22
+        enabled: false
+field_type: entity_reference_revisions

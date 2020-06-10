@@ -1,0 +1,7 @@
+smart_content_paragraphs.reaction_controller:
+  path: '/personalised_content/reactions/{nid}'
+  defaults:
+    _controller: '\Drupal\smart_content_paragraphs\Controller\ReactionsController::reaction'
+    _title: 'Smart Content paragraphs Reactions'
+  requirements:
+    _permission: 'access content'

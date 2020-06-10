@@ -1,0 +1,22 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_smart_content_conditions
+    - paragraphs.paragraphs_type.smart_content_paragraph
+id: paragraph.smart_content_paragraph.field_smart_content_conditions
+field_name: field_smart_content_conditions
+entity_type: paragraph
+bundle: smart_content_paragraph
+label: 'Smart Segments'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:smart_segment'
+  handler_settings:
+    target_bundles: null
+    auto_create: false
+field_type: entity_reference

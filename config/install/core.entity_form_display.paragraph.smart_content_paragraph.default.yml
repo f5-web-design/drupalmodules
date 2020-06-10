@@ -1,0 +1,35 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.smart_content_paragraph.field_reactions
+    - field.field.paragraph.smart_content_paragraph.field_smart_content_conditions
+    - paragraphs.paragraphs_type.smart_content_paragraph
+  module:
+    - paragraphs
+id: paragraph.smart_content_paragraph.default
+targetEntityType: paragraph
+bundle: smart_content_paragraph
+mode: default
+content:
+  field_reactions:
+    type: entity_reference_paragraphs
+    weight: 1
+    settings:
+      title: Paragraph
+      title_plural: Paragraphs
+      edit_mode: open
+      add_mode: dropdown
+      form_display_mode: default
+      default_paragraph_type: ''
+    third_party_settings: {  }
+    region: content
+  field_smart_content_conditions:
+    weight: 0
+    settings: {  }
+    third_party_settings: {  }
+    type: options_select
+    region: content
+hidden:
+  created: true
+  status: true

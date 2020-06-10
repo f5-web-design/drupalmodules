@@ -1,0 +1,128 @@
+<?php
+
+/**
+ * @file
+ * Contains smart_content_paragraphs.install.
+ */
+
+use Drupal\taxonomy\Entity\Term;
+use Drupal\taxonomy\Entity\Vocabulary;
+
+/**
+ * Implements hook_install().
+ *
+ * Perform actions to set up the site for this profile.
+ *
+ * @see system_install()
+ */
+function smart_content_paragraphs_install() {
+  $database = \Drupal::database();
+  $schema = $database->schema();
+  $module_handler = \Drupal::service('module_handler');
+  $module_path = $module_handler->getModule('smart_content_paragraphs')->getPath();
+  $counrires_data_csv = $module_path . '/data/countries.csv';
+  if (($handle = fopen($counrires_data_csv, "r")) !== FALSE) {
+    $data = [];
+    while (($data = fgetcsv($handle)) !== FALSE) {
+      if (empty($data[0])) {
+        // Skip if empty row.
+        continue;
+      }
+      elseif (!empty($data[0]) && $data[0] == 'iso2') {
+        // Skip row of title.
+        continue;
+      }
+      else {
+        // Create  new term.
+        $term_data = [
+          'vid' => 'cit_countries_information',
+          'name' => isset($data[2]) ? $data[2] : '',
+          'status' => isset($data[6]) ? $data[6] : '',
+          'path' => '/country-info/' . strtoupper($data[0]),
+          'field_citf_official_name' => isset($data[3]) ? $data[3] : '',
+          'field_citf_iso2_code' => isset($data[0]) ? $data[0] : '',
+          'field_citf_iso3_code' => isset($data[1]) ? $data[1] : '',
+          'field_citf_iso_num_code' => isset($data[4]) ? $data[4] : '',
+          'field_citf_continent' => isset($data[5]) ? $data[5] : '',
+        ];
+        $term = Term::create($term_data);
+        $term->enforceIsNew();
+        $term->save();
+      }
+    }
+  }
+
+  $table_name = 'smart_content_paragraphs_regions';
+
+  $table_schema = [
+    'description' => 'Region Details',
+    'fields' => [
+      'region' => [
+        'type' => 'varchar',
+        'length' => 60,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'country' => [
+        'type' => 'varchar',
+        'length' => 60,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'boundsNElat' => [
+        'type' => 'varchar',
+        'length' => 25,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'boundsNElong' => [
+        'type' => 'varchar',
+        'length' => 25,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'boundsSWlat' => [
+        'type' => 'varchar',
+        'length' => 25,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'boundsSWlong' => [
+        'type' => 'varchar',
+        'length' => 25,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+    ],
+    'primary key' => [
+      'region',
+      'country',
+    ],
+  ];
+
+  $schema->createTable($table_name, $table_schema);
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function smart_content_paragraphs_uninstall() {
+  // Delete cit_countries_information taxonomy.
+  $vids = [
+    'cit_countries_information',
+  ];
+
+  foreach ($vids as $vid) {
+    $vocabulary = Vocabulary::load($vid);
+    if (!empty($vocabulary)) {
+      $vocabulary->delete();
+    }
+  }
+
+  // Delete regions table.
+  if (\Drupal::database()->schema()
+    ->tableExists('smart_content_paragraphs_regions')) {
+    \Drupal::database()->schema()
+      ->dropTable('smart_content_paragraphs_regions');
+  }
+}

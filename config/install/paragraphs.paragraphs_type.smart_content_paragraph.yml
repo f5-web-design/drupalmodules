@@ -1,0 +1,8 @@
+langcode: en
+status: true
+dependencies: {  }
+id: smart_content_paragraph
+label: 'PE Variation'
+icon_uuid: null
+description: ''
+behavior_plugins: {  }

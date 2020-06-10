@@ -1,0 +1,24 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_default
+    - paragraphs.paragraphs_type.smart
+  module:
+    - entity_reference_revisions
+id: paragraph.smart.field_default
+field_name: field_default
+entity_type: paragraph
+bundle: smart
+label: Default
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:paragraph'
+  handler_settings:
+    negate: 0
+    target_bundles: {}
+field_type: entity_reference_revisions

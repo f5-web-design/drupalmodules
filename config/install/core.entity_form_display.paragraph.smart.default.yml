@@ -1,0 +1,43 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.smart.field_default
+    - field.field.paragraph.smart.field_reusable_paragraph
+    - field.field.paragraph.smart.field_variations
+    - paragraphs.paragraphs_type.smart
+  module:
+    - paragraphs
+id: paragraph.smart.default
+targetEntityType: paragraph
+bundle: smart
+mode: default
+content:
+  field_default:
+    type: entity_reference_paragraphs
+    weight: 0
+    region: content
+    settings:
+      title: Paragraph
+      title_plural: Paragraphs
+      edit_mode: open
+      add_mode: dropdown
+      form_display_mode: default
+      default_paragraph_type: ''
+    third_party_settings: {  }
+  field_variations:
+    type: entity_reference_paragraphs
+    weight: 1
+    settings:
+      title: Paragraph
+      title_plural: Paragraphs
+      edit_mode: open
+      add_mode: dropdown
+      form_display_mode: default
+      default_paragraph_type: ''
+    third_party_settings: {  }
+    region: content
+hidden:
+  created: true
+  field_reusable_paragraph: true
+  status: true

@@ -1,0 +1,6 @@
+smart_content_paragraphs.admin:
+  title: 'Smart Segment entities'
+  description: 'Manage Smart Segment conditions'
+  url: internal:/admin/structure/smart_segment
+  parent: system.admin_structure
+  weight: 100
