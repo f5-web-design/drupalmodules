@@ -5,11 +5,12 @@
   "license": "GPL-2.0+",
   "homepage": "https://www.drupal.org/project/smart_content_paragraphs",
   "require": {
-    "drupal/smart_content": "1.0-beta1",
-    "drupal/smart_content_segments": "1.0-alpha2",    
-    "drupal/paragraphs": "^1.12",    
-    "drupal/countries_info": "^1.2",    
+    "drupal/countries_info": "^1.2",
+    "drupal/entity_usage":"^2.0",
     "drupal/geocoder": "^3.1",
+    "drupal/paragraphs": "^1.12",
+    "drupal/smart_content": "1.0-beta1",
+    "drupal/smart_content_segments": "1.0-alpha2",
     "geocoder-php/google-maps-provider": "^4.4"
   },
   "minimum-stability": "dev",
