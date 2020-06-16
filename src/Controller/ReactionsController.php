@@ -4,6 +4,7 @@ namespace Drupal\smart_content_paragraphs\Controller;
 
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\field\FieldConfigInterface;
 use Drupal\paragraphs\Entity\Paragraph;
 use Drupal\smart_content_segments\Entity\SmartSegment;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -70,19 +71,21 @@ class ReactionsController extends ControllerBase {
   public function reaction($nid) {
     $response['data'] = [];
     // Looping the list of "Components" paragraph types.
-    foreach ($this->getSmartComponents($nid) as $delta => $paragraph) {
-      if (empty($response['data'][$delta])) {
-        // Looping the list of "Variations - Smart Paragraph" paragraph types.
-        foreach ($paragraph->get('field_variations')
-          ->getValue() as $field_variation) {
-          $variation_paragraph = Paragraph::load($field_variation['target_id']);
+    foreach ($this->getSmartComponents($nid) as $smart_components) {
+      foreach ($smart_components as $delta => $paragraph) {
+        if (empty($response['data'][$delta])) {
+          // Looping the list of "Variations - Smart Paragraph" paragraph types.
+          foreach ($paragraph->get('field_variations')
+                     ->getValue() as $field_variation) {
+            $variation_paragraph = Paragraph::load($field_variation['target_id']);
 
-          if (($variation_paragraph->getType() == 'smart_content_paragraph')
-          && (empty($response['data'][$delta]))) {
-            $field_smart_content_conditions = $variation_paragraph->get('field_smart_content_conditions')
-              ->getValue();
-            if ($this->validateVariation($field_smart_content_conditions, $response, $field_variation, $delta)) {
-              $response['data'][$delta] = $field_variation['target_id'];
+            if (($variation_paragraph->getType() == 'smart_content_paragraph')
+              && (empty($response['data'][$delta]))) {
+              $field_smart_content_conditions = $variation_paragraph->get('field_smart_content_conditions')
+                ->getValue();
+              if ($this->validateVariation($field_smart_content_conditions, $response, $field_variation, $delta)) {
+                $response['data'][$delta] = $field_variation['target_id'];
+              }
             }
           }
         }
@@ -193,23 +196,49 @@ class ReactionsController extends ControllerBase {
     return $all_conditions_match;
   }
 
+
   /**
    * Get smart content components.
    */
   public function getSmartComponents($nid) {
     $node = $this->nodeStorage->load($nid);
-    $paragraph_field_items = $node->get('field_components')->getValue();
 
-    $paragraph_ids = array_map(function ($b) {
-      return $b['target_id'];
-    }, $paragraph_field_items);
+    $fieldsArray = $this->getContentTypeFields($node->bundle());
 
-    $paragraph_entities = Paragraph::loadMultiple($paragraph_ids);
+    $paragraphs = [];
 
-    // Returning only those from Smart type.
-    return array_filter($paragraph_entities, function ($component) {
-      return $component->getType() === 'smart';
-    });
+    foreach ($fieldsArray as $fieldName => $fieldConfig) {
+      if ($fieldConfig->getType() == 'entity_reference_revisions') {
+        $paragraph_ids = array_map(function ($b) {
+          return $b['target_id'];
+        }, $node->get($fieldName)->getValue());
+
+        $paragraphs[] = array_filter(Paragraph::loadMultiple($paragraph_ids), function ($component) {
+          return $component->getType() === 'smart';
+        });
+      }
+    }
+
+    return $paragraphs;
+  }
+
+  /**
+   * Helper function to Get all fields of content type.
+   */
+  function getContentTypeFields($contentType) {
+
+    $fields = [];
+
+    if (!empty($contentType)) {
+      $fields = array_filter(
+        \Drupal::service('entity.manager')
+          ->getFieldDefinitions('node', $contentType), static function ($field_definition) {
+        return $field_definition instanceof FieldConfigInterface;
+      }
+      );
+    }
+
+    return $fields;
   }
 
   /**
@@ -338,7 +367,7 @@ class ReactionsController extends ControllerBase {
     }
 
     $inLat = $this->inputParameters['latitude'] > $result->boundsSWlat
-              && $this->inputParameters['latitude'] < $result->boundsNElat;
+      && $this->inputParameters['latitude'] < $result->boundsNElat;
     return $inLat && $inLong;
   }
 
