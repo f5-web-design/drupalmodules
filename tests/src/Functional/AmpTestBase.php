@@ -219,14 +219,12 @@ abstract class AmpTestBase extends BrowserTestBase {
    * Helper function to populate body text.
    */
   protected function bodyText() {
-    $words = [];
     $max = mt_rand(10, 15);
     $words = [];
     for ($i = 0; $i < $max; $i++) {
       $words[] = $this->randomMachineName(mt_rand(4, 10));
     }
-    $text = '<p>' . ucfirst(implode(' ', $words) . '.</p>');
-    return $text;
+    return '<p>' . ucfirst(implode(' ', $words) . '.</p>');
   }
 
   /**

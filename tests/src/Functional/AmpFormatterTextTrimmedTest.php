@@ -30,7 +30,6 @@ class AmpFormatterTextTrimmedTest extends AmpFormatterTestBase {
    * {@inheritdoc}
    */
   public function createAmpNode() {
-
     parent::createAmpNode();
 
     // Create some input/output values.
@@ -52,7 +51,6 @@ class AmpFormatterTextTrimmedTest extends AmpFormatterTestBase {
     $this->valuesOut = [
       text_summary($header . $amp_image . $text . $amp_social, 'full_html', 600),
     ];
-
   }
 
 }
