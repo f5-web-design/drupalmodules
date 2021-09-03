@@ -97,6 +97,7 @@ class AmpImageFormatter extends ImageFormatter {
       $elements[$delta]['#item_attributes']['width'] = $width;
       $elements[$delta]['#item_attributes']['height'] = $height;
       $elements[$delta]['#item_attributes'] = array_filter($elements[$delta]['#item_attributes']);
+      $elements[$delta]['#item_attributes']['loading'] = FALSE;
     }
     $elements['#attached']['library'] = $this->getLibraries();
     return $elements;

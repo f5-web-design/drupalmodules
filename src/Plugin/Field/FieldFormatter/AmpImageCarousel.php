@@ -119,6 +119,7 @@ class AmpImageCarousel extends ImageFormatter {
       $elements['#items'][$delta]['#item_attributes']['width'] = $width;
       $elements['#items'][$delta]['#item_attributes']['height'] = $height;
       $elements['#items'][$delta]['#item_attributes'] = array_filter($elements['#items'][$delta]['#item_attributes']);
+      $elements['#items'][$delta]['#item_attributes']['loading'] = FALSE;
     }
     $elements['#attributes']['type'] = $this->getSetting('type');
     $elements['#attributes']['layout'] = $layout;
