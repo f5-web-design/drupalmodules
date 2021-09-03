@@ -37,15 +37,9 @@ class AmpProcessedText extends ProcessedText {
    * Pre-render callback: Processes the amp markup and attaches libraries.
    */
   public static function preRenderAmpText($element) {
-
-    /**
-     * @var AMPService $amp_service
-     */
+    /** @var \Drupal\amp\Service\AMPService $amp_service */
     $amp_service = \Drupal::service('amp.utilities');
-
-    /**
-     * @var AMP $amp
-     */
+    /** @var \Lullabot\AMP\AMP $amp */
     $amp = $amp_service->createAMPConverter();
 
     $amp->loadHtml($element['#markup']);
