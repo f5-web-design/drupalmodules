@@ -3,6 +3,8 @@
 namespace Drupal\pce_geobrowser\Plugin\Derivative;
 
 use Drupal\Component\Plugin\Derivative\DeriverBase;
+use Symfony\Component\Intl\Countries;
+use Symfony\Component\Intl\Locales;
 
 /**
  * Deriver for GeobrowserCondition.
@@ -25,11 +27,11 @@ class GeobrowserDerivative extends DeriverBase {
       ] + $base_plugin_definition,
       'latitude' => [
         'label' => 'Latitude',
-        'type' => 'number',
+        'type' => 'float_type',
       ] + $base_plugin_definition,
       'longitude' => [
         'label' => 'Longitude',
-        'type' => 'number',
+        'type' => 'float_type',
       ] + $base_plugin_definition,
     ];
     return $this->derivatives;
@@ -66,10 +68,14 @@ class GeobrowserDerivative extends DeriverBase {
    *   Array of Country Name.
    */
   public static function getCountryNameFromCode($country_code) {
-    $country_list = \Drupal::service('country_manager')->getList();
-    foreach ($country_list as $key => $value) {
+    $language = \Drupal::languageManager()->getCurrentLanguage()->getId();
+    $isValidLocale = Locales::exists($language);
+    $locale = $isValidLocale ? $language : 'en';
+    \Locale::setDefault($locale);
+    $countries = Countries::getNames();
+    foreach ($countries as $key => $value) {
       if ($key == $country_code) {
-        return $value->__toString();
+        return $value;
       }
     }
   }

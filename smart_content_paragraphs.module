@@ -10,35 +10,33 @@ use Http\Adapter\Guzzle6\Client;
 use Geocoder\Provider\GoogleMaps\GoogleMaps;
 use Geocoder\StatefulGeocoder;
 use Geocoder\Query\GeocodeQuery;
-
+use Drupal\Core\Database\Database;
+use Drupal\smart_content\Segment;
+use Drupal\smart_content\Entity\SegmentSetConfig;
+use Drupal\smart_content\SegmentSetStorage\SegmentSetStorageManager;
 /**
  * Implements hook_preprocess_node().
  */
 function smart_content_paragraphs_preprocess_node(&$variables) {
   $variables['#attached']['library'][] = 'smart_content_paragraphs/personalization';
-  if (isset($_SERVER["HTTP_CF_IPCOUNTRY"])) {
-    $cloudflare_country_code = $_SERVER["HTTP_CF_IPCOUNTRY"];
-  }
-  else {
-    $cloudflare_country_code = '';
-  }
-  $variables['#attached']['drupalSettings']['smart_content_paragraphs']['personalization']['nid'][] = $variables['node']->id();
-  $variables['#attached']['drupalSettings']['smart_content_paragraphs']['personalization']['cloudflare_country_code'] = $cloudflare_country_code;
+  $cloudflare_country_code = isset($_SERVER["HTTP_CF_IPCOUNTRY"]) ? $_SERVER["HTTP_CF_IPCOUNTRY"] : '';
+  $variables['#attached']['drupalSettings']['smartContentParagraphs']['nid'][] = $variables['node']->id();
+  $variables['#attached']['drupalSettings']['smartContentParagraphs']['cloudflareCountryCode'] = $cloudflare_country_code;
 }
 
 /**
  * Implements hook_preprocess_paragraph().
  */
-function smart_content_paragraphs_preprocess_paragraph(&$vars) {
-  $paragraph = $vars['paragraph'];
-  $vars['attributes']['class'][] = 'paragraph--' . $paragraph->id();
+function smart_content_paragraphs_preprocess_paragraph(&$variables) {
+  $variables['attributes']['class'][] = 'paragraph--' . $variables['paragraph']->id();
 }
 
 /**
  * Altering the segment Add/Edit form's submit handler.
  */
 function smart_content_paragraphs_form_alter(&$form, FormStateInterface $form_state, $form_id) {
-  if ($form_id == 'smart_segment_add_form' || $form_id == 'smart_segment_edit_form') {
+  if ($form_id == 'smart_content_segment_set_add_form' || $form_id == 'smart_content_segment_set_edit_form') {
+    $form['#attached']['library'][] = 'smart_content_paragraphs/personalization';
     $form['actions']['submit']['#submit'][] = 'smart_content_paragraphs_segment_form_save';
   }
 }
@@ -47,12 +45,17 @@ function smart_content_paragraphs_form_alter(&$form, FormStateInterface $form_st
  * Custom submit handler for Segment Add/Edit form.
  */
 function smart_content_paragraphs_segment_form_save($form, FormStateInterface $form_state) {
-  $condition_config = $form_state->getValue('conditions_config');
-  $condition_keys = array_keys($condition_config['condition_items']);
-  foreach ($condition_keys as $condition_key) {
-    if (strpos($condition_key, 'geobrowser:region') !== FALSE) {
-      $region_name = $condition_config['condition_items'][$condition_key]['condition_type_settings']['value'];
-      _store_region_details($region_name);
+  $segment_set = $form_state->getStorage()['smart_content']['segment_set']->getSegments();
+  $values = $form_state->getValues();
+  foreach ($segment_set as $segment_id => $segment) {
+    $conditions = $values['segment_set_settings']['segments'][$segment_id]['segment_settings']['condition_settings']['group']['plugin_form']['settings']['conditions'];
+    foreach ($conditions as $condition_id => $condition) {
+      if (strpos($condition_id, 'geobrowser:region') !== FALSE) {
+        foreach ($condition as $condition_type) {         
+          $region_name = $condition_type['value'];
+          _store_region_details($region_name);
+        }
+      }
     }
   }
 }
@@ -63,13 +66,14 @@ function smart_content_paragraphs_segment_form_save($form, FormStateInterface $f
 function _store_region_details($region_name) {
   $httpClient = new Client();
   $providers = \Drupal::entityTypeManager()->getStorage('geocoder_provider')->load('googlemaps');
+
   if (!empty($providers)) {
     $provider_config = $providers->get('configuration');
     $provider = new GoogleMaps($httpClient, NULL, $provider_config['apiKey']);
     $geocoder = new StatefulGeocoder($provider, 'en');
 
     $result = $geocoder->geocodeQuery(GeocodeQuery::create(str_replace(' ', '+', $region_name)));
-    if ($result->count() > 0) {
+    if ($result->count()) {
       $country = $result->first()->getCountry()->getName();
       if (!_region_exist($region_name, $country)) {
         $boundsNElat = $result->first()->getBounds()->getNorth();
@@ -77,30 +81,21 @@ function _store_region_details($region_name) {
         $boundsSWlat = $result->first()->getBounds()->getSouth();
         $boundsSWlong = $result->first()->getBounds()->getWest();
 
-        $database = \Drupal::database();
-        $database->insert('smart_content_paragraphs_regions')
-          ->fields([
-            'region',
-            'country',
-            'boundsNElat',
-            'boundsNElong',
-            'boundsSWlat',
-            'boundsSWlong',
-          ])
-          ->values([
-            $region_name,
-            $country,
-            $boundsNElat,
-            $boundsNElong,
-            $boundsSWlat,
-            $boundsSWlong,
-          ])
-          ->execute();
+        $connection = Database::getConnection();
+        $smart_content_paragraphs_regions = $connection->insert('smart_content_paragraphs_regions')->fields([
+          'region' => $region_name,
+          'country' => $country,
+          'boundsNElat' => $boundsNElat,
+          'boundsNElong' => $boundsNElong,
+          'boundsSWlat' => $boundsSWlat,
+          'boundsSWlong' => $boundsSWlong,
+        ])->execute();
       }
     }
+    return $smart_content_paragraphs_regions;
   }
   else {
-    drupal_set_message(t("Please add the Googlemaps provider and configure Google API Key in <a href='@baseurl/admin/config/system/geocoder/geocoder-provider' target='_blank'>Geocoder Provider</a> to save the region details", ['@baseurl' => base_path()]), 'error', TRUE);
+    \Drupal::messenger()->addError(t("Please add the Googlemaps provider and configure Google API Key in <a href='@basepath/admin/config/system/geocoder/geocoder-provider' target='_blank'>Geocoder Provider</a> to save the region details", ['@basepath' => base_path()]), 'error', TRUE);
   }
 }
 
@@ -108,16 +103,20 @@ function _store_region_details($region_name) {
  * Function to check whether the Region and country names already exist or not.
  */
 function _region_exist($region_name, $country) {
-  $database = \Drupal::database();
-  $query = $database->select('smart_content_paragraphs_regions', 'scp');
-  $query->condition('scp.region', $region_name, '=');
-  $query->condition('scp.country', $country, '=');
-  $query->fields('scp', ['country']);
-  $result = $query->execute()->fetchAll();
-  if (count($result) > 0) {
-    return TRUE;
-  }
-  else {
-    return FALSE;
-  }
+  $count = \Drupal::database()
+  ->select('smart_content_paragraphs_regions')
+  ->condition('region', $region_name)
+  ->condition('country', $country)
+  ->countQuery()
+  ->execute()
+  ->fetchField();
+
+  return (bool) $count;
 }
+
+/**function smart_content_paragraphs_entity_access(\Drupal\Core\Entity\EntityInterface $entity, $operation, \Drupal\Core\Session\AccountInterface $account) {
+  if ($operation = 'view') {
+    return AccessResult::allowed();
+  }
+  return AccessResult::forbidden();
+}**/

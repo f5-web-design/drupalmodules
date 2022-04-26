@@ -3,13 +3,12 @@ status: true
 dependencies:
   module:
     - paragraphs
-    - smart_content_segments
 id: paragraph.field_smart_content_conditions
 field_name: field_smart_content_conditions
 entity_type: paragraph
 type: entity_reference
 settings:
-  target_type: smart_segment
+  target_type: smart_content_segment_set
 module: core
 locked: false
 cardinality: 1

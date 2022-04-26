@@ -1,60 +1,19 @@
 <?php
 
+use Drupal\field\Entity\FieldConfig;
+use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\smart_content\Segment;
+use Drupal\smart_content\Entity\SegmentSetConfig;
 /**
  * @file
  * Contains smart_content_paragraphs.install.
  */
 
-use Drupal\taxonomy\Entity\Term;
-use Drupal\taxonomy\Entity\Vocabulary;
-
 /**
- * Implements hook_install().
- *
- * Perform actions to set up the site for this profile.
- *
- * @see system_install()
+ * Implements hook_schema().
  */
-function smart_content_paragraphs_install() {
-  $database = \Drupal::database();
-  $schema = $database->schema();
-  $module_handler = \Drupal::service('module_handler');
-  $module_path = $module_handler->getModule('smart_content_paragraphs')->getPath();
-  $counrires_data_csv = $module_path . '/data/countries.csv';
-  if (($handle = fopen($counrires_data_csv, "r")) !== FALSE) {
-    $data = [];
-    while (($data = fgetcsv($handle)) !== FALSE) {
-      if (empty($data[0])) {
-        // Skip if empty row.
-        continue;
-      }
-      elseif (!empty($data[0]) && $data[0] == 'iso2') {
-        // Skip row of title.
-        continue;
-      }
-      else {
-        // Create  new term.
-        $term_data = [
-          'vid' => 'cit_countries_information',
-          'name' => isset($data[2]) ? $data[2] : '',
-          'status' => isset($data[6]) ? $data[6] : '',
-          'path' => '/country-info/' . strtoupper($data[0]),
-          'field_citf_official_name' => isset($data[3]) ? $data[3] : '',
-          'field_citf_iso2_code' => isset($data[0]) ? $data[0] : '',
-          'field_citf_iso3_code' => isset($data[1]) ? $data[1] : '',
-          'field_citf_iso_num_code' => isset($data[4]) ? $data[4] : '',
-          'field_citf_continent' => isset($data[5]) ? $data[5] : '',
-        ];
-        $term = Term::create($term_data);
-        $term->enforceIsNew();
-        $term->save();
-      }
-    }
-  }
-
-  $table_name = 'smart_content_paragraphs_regions';
-
-  $table_schema = [
+function smart_content_paragraphs_schema() {
+  $schema['smart_content_paragraphs_regions'] = [
     'description' => 'Region Details',
     'fields' => [
       'region' => [
@@ -100,29 +59,45 @@ function smart_content_paragraphs_install() {
     ],
   ];
 
-  $schema->createTable($table_name, $table_schema);
+  return $schema;
 }
 
 /**
  * Implements hook_uninstall().
  */
 function smart_content_paragraphs_uninstall() {
-  // Delete cit_countries_information taxonomy.
-  $vids = [
-    'cit_countries_information',
-  ];
+  // Delete regions table if exist.
+  \Drupal::database()->schema()
+    ->dropTable('smart_content_paragraphs_regions');
+}
+/**
+ * Implements hook_update_N().
+ */
+function smart_content_paragraphs_update_8001() {
+  $entity_type = 'paragraph';
+  $field_name = 'field_smart_content_conditions';
 
-  foreach ($vids as $vid) {
-    $vocabulary = Vocabulary::load($vid);
-    if (!empty($vocabulary)) {
-      $vocabulary->delete();
-    }
+  $ids_old = \Drupal::entityQuery('smart_segment')->execute();
+  foreach($ids_old as $id){
+    $new = \Drupal::service('config.factory')->get("smart_content_segments.smart_segment.{$id}")->get('conditions');
+    $uuid = \Drupal::service('uuid')->generate();
+    \Drupal::service('config.factory')->rename("smart_content_segments.smart_segment.{$id}", "smart_content.smart_content.segment_set.{$id}");
+    \Drupal::configFactory()->getEditable("smart_content.smart_content.segment_set.{$id}")
+      ->set("settings.segments.{$uuid}.conditions", $new)
+      ->set("settings.segments.{$uuid}.{$uuid}", $uuid)
+      ->set("settings.segments.{$uuid}.weight", 0)
+      ->set("settings.segments.{$uuid}.label", 1)
+      ->set("settings.segments.{$uuid}.default", '')
+      ->save();
+    SegmentSetConfig::load($id)->save();
   }
+  // Update field configuration.
+  $config = \Drupal::configFactory()
+    ->getEditable("field.storage.{$entity_type}.{$field_name}");
+  $config->set('settings.target_type', 'smart_content_segment_set');
+  $config->save(TRUE);
 
-  // Delete regions table.
-  if (\Drupal::database()->schema()
-    ->tableExists('smart_content_paragraphs_regions')) {
-    \Drupal::database()->schema()
-      ->dropTable('smart_content_paragraphs_regions');
-  }
+  // Update field storage configuration.
+  FieldStorageConfig::loadByName($entity_type, $field_name)->save();
+
 }

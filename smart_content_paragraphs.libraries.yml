@@ -1,4 +1,7 @@
 personalization:
+  css:
+    theme:
+      css/form.css: {}
   js:
     js/personalization.js: { }
   dependencies:

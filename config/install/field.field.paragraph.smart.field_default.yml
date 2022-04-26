@@ -19,6 +19,6 @@ default_value_callback: ''
 settings:
   handler: 'default:paragraph'
   handler_settings:
+    target_bundles: null
     negate: 0
-    target_bundles: {}
 field_type: entity_reference_revisions

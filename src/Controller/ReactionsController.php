@@ -6,11 +6,12 @@ use Drupal\Component\Serialization\Json;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\field\FieldConfigInterface;
 use Drupal\paragraphs\Entity\Paragraph;
-use Drupal\smart_content_segments\Entity\SmartSegment;
+use Drupal\smart_content\Entity\SegmentSetConfig;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Request;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Database\Connection;
 
 /**
@@ -28,29 +29,43 @@ class ReactionsController extends ControllerBase {
   private $inputParameters;
 
   /**
-   * Database connection variable.
+   * The node storage.
+   *
+   * @var \Drupal\Core\Entity\EntityStorageInterface
+   */
+  protected $nodeStorage;
+
+  /**
+   * Database service object.
    *
    * @var \Drupal\Core\Database\Connection
    */
   protected $database;
 
   /**
+   * Entity field manager.
+   *
+   * @var \Drupal\Core\Entity\EntityFieldManagerInterface
+   */
+  protected $entityFieldManager;
+
+  /**
    * Constructor for ReactionsController objects.
    *
-   * @param \Drupal\Core\Cache\RequestStack $requestStack
-   *   Get the values from post request.
-   * @param \Drupal\Core\Extension\Json $json
-   *   The module handler to deal with json format.
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The current request.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity
    *   The Entity type manager service.
    * @param \Drupal\Core\Database\Connection $connection
    *   Database connectivity.
+   * @param \Drupal\Core\Entity\EntityFieldManagerInterface $entity_field_manager
+   *   The entity field manager service.
    */
-  public function __construct(RequestStack $requestStack, Json $json, EntityTypeManagerInterface $entity, Connection $connection) {
-    $request_parameters = $requestStack->getCurrentRequest()->getContent();
-    $this->inputParameters = $json::decode($request_parameters);
-    $this->nodeStorage = $entity->getStorage('node');
-    $this->database = $connection;
+  public function __construct(Request $request, EntityTypeManagerInterface $entity_type_manager, Connection $database, EntityFieldManagerInterface $entity_field_manager) {
+    $this->inputParameters = Json::decode($request->getContent());
+    $this->nodeStorage = $entity_type_manager->getStorage('node');
+    $this->database = $database;
+    $this->entityFieldManager = $entity_field_manager;
   }
 
   /**
@@ -58,11 +73,11 @@ class ReactionsController extends ControllerBase {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('request_stack'),
-      $container->get('serialization.json'),
-      $container->get('entity_type.manager'),
-      $container->get('database')
-    );
+          $container->get('request_stack')->getCurrentRequest(),
+          $container->get('entity_type.manager'),
+          $container->get('database'),
+          $container->get('entity_field.manager')
+      );
   }
 
   /**
@@ -76,22 +91,19 @@ class ReactionsController extends ControllerBase {
         if (empty($response['data'][$delta])) {
           // Looping the list of "Variations - Smart Paragraph" paragraph types.
           foreach ($paragraph->get('field_variations')
-                     ->getValue() as $field_variation) {
+            ->getValue() as $field_variation) {
             $variation_paragraph = Paragraph::load($field_variation['target_id']);
-
-            if (($variation_paragraph->getType() == 'smart_content_paragraph')
-              && (empty($response['data'][$delta]))) {
+            if (($variation_paragraph->getType() == 'smart_content_paragraph')) {
               $field_smart_content_conditions = $variation_paragraph->get('field_smart_content_conditions')
                 ->getValue();
               if ($this->validateVariation($field_smart_content_conditions, $response, $field_variation, $delta)) {
-                $response['data'][$delta] = $field_variation['target_id'];
+                $response['data'][$delta][] = $field_variation['target_id'];
               }
             }
           }
         }
       }
     }
-
     return new JsonResponse($response);
   }
 
@@ -148,8 +160,8 @@ class ReactionsController extends ControllerBase {
    */
   public function validateCondition($condition) {
     $inputParameters = $this->inputParameters;
-    $value = $condition['conditions_type_settings']['value'];
-    $negate = (bool) $condition['conditions_type_settings']['negate'];
+    $value = $condition['condition_type_settings']['value'];
+    $negate = (bool) $condition['condition_type_settings']['negate'];
 
     switch ($condition["type"]) {
       case 'type:textfield':
@@ -160,10 +172,14 @@ class ReactionsController extends ControllerBase {
         $result = $this->evaluateNumber($condition);
         break;
 
+      case 'type:float_type':
+        $result = $this->evaluateNumber($condition);
+        break;
+
       case 'type:select':
         if ($condition['id'] == 'device:device_os') {
           $user_value = $this->getOs();
-          $result = ($user_value == $value) & !$negate;
+          $result = (($user_value == $value) == !$negate);
         }
         else {
           $result = $this->evaluateSelect($condition);
@@ -171,9 +187,10 @@ class ReactionsController extends ControllerBase {
         break;
 
       case 'type:node_reference':
-        $result = in_array('node/' . $value, $inputParameters["pages"]) & !$negate;
+        $result = (in_array('node/' . $value, $inputParameters["pages"]) == !$negate);
         break;
     }
+
     return $result;
   }
 
@@ -182,60 +199,87 @@ class ReactionsController extends ControllerBase {
    */
   public function validateVariation($field_smart_content_conditions, $response, $field_variation, $delta) {
     // All conditions need to be satisfied in order to be displayed.
-    $all_conditions_match = TRUE;
-    foreach ($field_smart_content_conditions as $field_smart_content_condition) {
-      $conditions =
-        SmartSegment::load($field_smart_content_condition['target_id'])
-          ->conditions_settings;
+    $group = [];
 
-      foreach ($conditions as $variation_set_condition) {
-        $all_conditions_match = $all_conditions_match
-          && $this->validateCondition($variation_set_condition);
+    foreach ($field_smart_content_conditions as $field_smart_content_condition) {
+      $segment_set = SegmentSetConfig::load($field_smart_content_condition['target_id'])->getSegmentSet()->getSegments();
+      foreach ($segment_set as $segment_id => $segment) {
+        $conditions = $segment->get('conditions');
+        foreach ($conditions as $condition_id => $condition) {
+          $group[] = $conditions[$condition_id]['conditions'];
+          end($group);
+          $group[key($group)]['op'] = $conditions[$condition_id]['op'];
+        }
+      }
+      $segmentResult = [];
+      foreach ($group as $variation_set_condition) {
+        $validateResult = [];
+        $all_conditions_match = TRUE;
+        foreach ($variation_set_condition as $key => $condition) {
+          if ($key !== 'op') {
+            $validateResult[] = $this->validateCondition($condition);
+            $all_conditions_match = $all_conditions_match && $this->validateCondition($condition);
+          }
+          else {
+            if ($variation_set_condition[$key] == 'OR' && count(array_unique($validateResult)) == 1 && $all_conditions_match == FALSE) {
+              $all_conditions_match = FALSE;
+            }
+            elseif ($variation_set_condition[$key] == 'OR' && count(array_unique($validateResult)) > 1) {
+              $all_conditions_match = TRUE;
+            }
+          }
+        }
+        $segmentResult[] = $all_conditions_match;
+        if (count(array_unique($segmentResult)) == 1 && $all_conditions_match == FALSE) {
+          $all_conditions_match = FALSE;
+        }
+        elseif (count(array_unique($segmentResult)) > 1) {
+          $all_conditions_match = TRUE;
+        }
       }
     }
     return $all_conditions_match;
   }
-
 
   /**
    * Get smart content components.
    */
   public function getSmartComponents($nid) {
     $node = $this->nodeStorage->load($nid);
-
-    $fieldsArray = $this->getContentTypeFields($node->bundle());
-
+    $field_definitions = $this->entityFieldManager->getFieldDefinitions('node', $node->getType());
     $paragraphs = [];
 
-    foreach ($fieldsArray as $fieldName => $fieldConfig) {
+    foreach ($field_definitions as $fieldName => $fieldConfig) {
       if ($fieldConfig->getType() == 'entity_reference_revisions') {
-        $paragraph_ids = array_map(function ($b) {
-          return $b['target_id'];
-        }, $node->get($fieldName)->getValue());
+        $paragraph_ids = array_map(
+              function ($b) {
+                  return $b['target_id'];
+              }, $node->get($fieldName)->getValue()
+          );
 
-        $paragraphs[] = array_filter(Paragraph::loadMultiple($paragraph_ids), function ($component) {
-          return $component->getType() === 'smart';
-        });
+        $paragraphs[] = array_filter(
+              Paragraph::loadMultiple($paragraph_ids), function ($component) {
+                  return $component->getType() === 'smart';
+              }
+          );
       }
     }
-
     return $paragraphs;
   }
 
   /**
    * Helper function to Get all fields of content type.
    */
-  function getContentTypeFields($contentType) {
+  public function getContentTypeFields($contentType) {
 
     $fields = [];
-
     if (!empty($contentType)) {
       $fields = array_filter(
-        \Drupal::service('entity.manager')
-          ->getFieldDefinitions('node', $contentType), static function ($field_definition) {
-        return $field_definition instanceof FieldConfigInterface;
-      }
-      );
+            \Drupal::service('entity_field.manager')
+              ->getFieldDefinitions('node', $contentType), static function ($field_definition) {
+                return $field_definition instanceof FieldConfigInterface;
+              }
+        );
     }
 
     return $fields;
@@ -248,12 +292,12 @@ class ReactionsController extends ControllerBase {
     $user_value_key = $this->getKeynameFromPluginId($condition);
     $inputParameters = $this->inputParameters;
     // Value we're checking against.
-    $value = strtolower($condition['conditions_type_settings']['value']);
+    $value = strtolower($condition['condition_type_settings']['value']);
     // Value in user's browser.
     $user_value = strtolower($inputParameters[$user_value_key]);
     // IF/ IF NOT for the condition.
-    $negate = (bool) $condition['conditions_type_settings']['negate'];
-    $op = $condition['conditions_type_settings']['op'];
+    $negate = (bool) $condition['condition_type_settings']['negate'];
+    $op = $condition['condition_type_settings']['op'];
 
     switch ($op) {
       case 'equals':
@@ -269,7 +313,7 @@ class ReactionsController extends ControllerBase {
         break;
     }
 
-    return $result & !$negate;
+    return ($result == !$negate);
   }
 
   /**
@@ -280,18 +324,17 @@ class ReactionsController extends ControllerBase {
     $user_value_key = $this->getKeynameFromPluginId($condition);
     $inputParameters = $this->inputParameters;
     // Value we're checking against.
-    $settings = $condition['conditions_type_settings'];
+    $settings = $condition['condition_type_settings'];
     // Value we want to match.
     $value = $settings['value'];
     // Value in user's browser.
     $user_value = $inputParameters[$user_value_key];
     // IF/ IF NOT for the condition.
     $negate = (bool) $settings['negate'];
-
     $op = $settings['op'];
 
     switch ($op) {
-      case 'eq':
+      case 'equals':
         $result = ($user_value === $value);
         break;
 
@@ -312,8 +355,7 @@ class ReactionsController extends ControllerBase {
         break;
 
     }
-
-    return $result & !$negate;
+    return ($result == !$negate);
   }
 
   /**
@@ -330,15 +372,14 @@ class ReactionsController extends ControllerBase {
   public function evaluateSelect($condition) {
     $user_value_key = $this->getKeynameFromPluginId($condition);
     $user_value = $this->inputParameters[$user_value_key];
-    $value = $condition['conditions_type_settings']['value'];
+    $value = $condition['condition_type_settings']['value'];
     // IF/IF NOT for the condition.
-    $negate = (bool) $condition['conditions_type_settings']['negate'];
-
+    $negate = (bool) $condition['condition_type_settings']['negate'];
     if ($user_value_key == 'region') {
-      return $this->validateRegion($value) & !$negate;
+      return ($this->validateRegion($value) == !$negate);
     }
     else {
-      return (strtolower($user_value) == strtolower($value)) & !$negate;
+      return ((strtolower($user_value) == strtolower($value)) == !$negate);
     }
   }
 
@@ -348,12 +389,14 @@ class ReactionsController extends ControllerBase {
   public function validateRegion($region) {
     $query = $this->database->select('smart_content_paragraphs_regions', 'hww');
     $query->condition('hww.region', $region, '=');
-    $query->fields('hww', [
-      'boundsNElat',
-      'boundsNElong',
-      'boundsSWlat',
-      'boundsSWlong',
-    ]);
+    $query->fields(
+          'hww', [
+            'boundsNElat',
+            'boundsNElong',
+            'boundsSWlat',
+            'boundsSWlong',
+          ]
+      );
     $result = $query->execute()->fetchObject();
 
     $eastBound = $this->inputParameters['longitude'] < $result->boundsNElong;
@@ -367,7 +410,7 @@ class ReactionsController extends ControllerBase {
     }
 
     $inLat = $this->inputParameters['latitude'] > $result->boundsSWlat
-      && $this->inputParameters['latitude'] < $result->boundsNElat;
+        && $this->inputParameters['latitude'] < $result->boundsNElat;
     return $inLat && $inLong;
   }
 

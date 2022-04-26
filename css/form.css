@@ -1,0 +1,7 @@
+.float-type::-webkit-outer-spin-button,
+.float-type::-webkit-inner-spin-button {
+  appearance: none;
+}
+input[type=number] {
+  -moz-appearance: textfield; /* Firefox */
+}

@@ -7,6 +7,7 @@ dependencies:
     - field.field.paragraph.smart.field_variations
     - paragraphs.paragraphs_type.smart
   module:
+    - entity_reference_revisions
     - paragraphs
 id: paragraph.smart.default
 targetEntityType: paragraph
@@ -14,20 +15,19 @@ bundle: smart
 mode: default
 content:
   field_default:
-    type: entity_reference_paragraphs
-    weight: 0
+    type: entity_reference_revisions_autocomplete
+    weight: 2
     region: content
     settings:
-      title: Paragraph
-      title_plural: Paragraphs
-      edit_mode: open
-      add_mode: dropdown
-      form_display_mode: default
-      default_paragraph_type: ''
+      match_operator: CONTAINS
+      match_limit: 10
+      size: 60
+      placeholder: ''
     third_party_settings: {  }
   field_variations:
     type: entity_reference_paragraphs
     weight: 1
+    region: content
     settings:
       title: Paragraph
       title_plural: Paragraphs
@@ -36,7 +36,6 @@ content:
       form_display_mode: default
       default_paragraph_type: ''
     third_party_settings: {  }
-    region: content
 hidden:
   created: true
   field_reusable_paragraph: true

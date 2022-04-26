@@ -30,7 +30,7 @@ class NodeReference extends ConditionTypeBase {
 
     $form['label'] = [
       '#type' => 'container',
-      // @todo: get condition group name from group
+      // @todo get condition group name from group
       '#markup' => $condition_definition['label'] . '(' . $condition_definition['group'] . ')',
       '#attributes' => ['class' => ['condition-label']],
     ];

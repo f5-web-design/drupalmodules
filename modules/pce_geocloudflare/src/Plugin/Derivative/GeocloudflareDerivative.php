@@ -3,6 +3,8 @@
 namespace Drupal\pce_geocloudflare\Plugin\Derivative;
 
 use Drupal\Component\Plugin\Derivative\DeriverBase;
+use Symfony\Component\Intl\Countries;
+use Symfony\Component\Intl\Locales;
 
 /**
  * Deriver for GeocloudflareCondition.
@@ -18,10 +20,10 @@ class GeocloudflareDerivative extends DeriverBase {
    */
   public function getDerivativeDefinitions($base_plugin_definition) {
     $this->derivatives = [
-      'country' => [
+      'cloudfarecountry' => [
         'label' => 'Country Name',
         'type' => 'select',
-        'options_callback' => [get_class($this), 'getCountryNameOptions'],
+        'options_callback' => [get_class($this), 'getOptions'],
       ] + $base_plugin_definition,
     ];
     return $this->derivatives;
@@ -33,13 +35,13 @@ class GeocloudflareDerivative extends DeriverBase {
    * @return array
    *   Array of Country Names.
    */
-  public static function getCountryNameOptions() {
-    $terms = \Drupal::entityManager()->getStorage('taxonomy_term')->loadTree("cit_countries_information");
-    $country_names = [];
-    foreach ($terms as $term) {
-      $country_names[$term->name] = $term->name;
-    }
-    return $country_names;
+  public static function getOptions() {
+    $language = \Drupal::languageManager()->getCurrentLanguage()->getId();
+    $isValidLocale = Locales::exists($language);
+    $locale = $isValidLocale ? $language : 'en';
+    \Locale::setDefault($locale);
+    $countries = Countries::getNames();
+    return $countries;
   }
 
 }

@@ -6,8 +6,6 @@ package: 'Smart Content Paragraphs'
 core_version_requirement: ^8 || ^9
 dependencies:
   - smart_content:smart_content
-  - smart_content_segments:smart_content_segments
   - drupal:paragraphs
   - paragraphs:paragraphs_library
-  - drupal:countries_info
   - drupal:geocoder
