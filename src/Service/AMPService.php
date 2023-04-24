@@ -170,7 +170,9 @@ class AMPService extends ServiceProviderBase  {
    */
   public function isDevPage() {
     $current_page = \Drupal::request()->getQueryString();
-    return !empty(stristr($current_page, 'debug')) || !empty(stristr($current_page, 'development'));
+    return !empty($current_page) && (
+        !empty(stristr($current_page, 'debug'))
+        || !empty(stristr($current_page, 'development')));
   }
 
   /**
