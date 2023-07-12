@@ -14,7 +14,7 @@ class AmpToolbarWorks extends BasicTestCaseBase {
   /**
    * {@inheritdoc}
    */
-  public static $modules = [
+  protected static $modules = [
     'toolbar',
     'amp',
     'amp_toolbar',

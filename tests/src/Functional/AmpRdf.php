@@ -14,7 +14,7 @@ class AmpRdf extends BasicTestCaseBase {
   /**
    * {@inheritdoc}
    */
-  public static $modules = [
+  protected static $modules = [
     'rdf',
     'amp',
     'amp_rdf',

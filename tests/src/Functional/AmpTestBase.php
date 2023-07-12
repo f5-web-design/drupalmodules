@@ -53,7 +53,7 @@ abstract class AmpTestBase extends BrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  public static $modules = [
+  protected static $modules = [
     'amp',
     'metatag',
     'schema_metatag',
@@ -105,7 +105,7 @@ abstract class AmpTestBase extends BrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
 
     parent::setUp();
 

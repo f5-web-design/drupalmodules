@@ -63,7 +63,7 @@ abstract class AmpFormatterTestBase extends AmpTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
     if (empty($this->fieldName)) {
       $this->fieldName = strtolower($this->randomMachineName());

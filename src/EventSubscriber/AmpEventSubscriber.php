@@ -2,8 +2,8 @@
 
 namespace Drupal\amp\EventSubscriber;
 
+use Symfony\Component\HttpKernel\Event\ViewEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpKernel\Event\GetResponseForControllerResultEvent;
 use Drupal\Core\EventSubscriber\MainContentViewSubscriber;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Drupal\Core\Routing\RouteMatchInterface;
@@ -45,10 +45,10 @@ class AmpEventSubscriber extends ServiceProviderBase implements EventSubscriberI
   /**
    * Alters the wrapper format if this is an AMP request.
    *
-   * @param \Symfony\Component\HttpKernel\Event\GetResponseForControllerResultEvent $event
+   * @param \Symfony\Component\HttpKernel\Event\ViewEvent $event
    *   The event to process.
    */
-  public function onView(GetResponseForControllerResultEvent $event) {
+  public function onView(ViewEvent $event) {
 
     // Don't interfere if this is a request that does not use html or amp
     // wrapper formats.

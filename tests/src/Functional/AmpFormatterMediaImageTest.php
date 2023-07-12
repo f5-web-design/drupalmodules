@@ -44,7 +44,7 @@ class AmpFormatterMediaImageTest extends AmpFormatterTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
     // Create an image media type.

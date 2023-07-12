@@ -2,6 +2,7 @@
 
 namespace Drupal\amp\Service;
 
+use Drupal\Core\Render\Markup;
 use Drupal\amp\AMP\DrupalAMP;
 use Drupal\Core\DependencyInjection\ServiceProviderBase;
 use Drupal\Core\Messenger\MessengerInterface;
@@ -194,7 +195,7 @@ class AMPService extends ServiceProviderBase  {
   public function devMessage($message, $method = 'addMessage') {
     $user = \Drupal::currentUser();
     if ($this->isDevPage() && $user->hasPermission('administer nodes')) {
-      $rendered_message = \Drupal\Core\Render\Markup::create($message);
+      $rendered_message = Markup::create($message);
       $translated_message = new TranslatableMarkup ('@message', array('@message' => $rendered_message));
       if (method_exists($this->messenger, $method)) {
         $this->messenger->$method($translated_message);

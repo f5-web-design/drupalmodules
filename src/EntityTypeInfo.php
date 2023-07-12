@@ -76,6 +76,7 @@ class EntityTypeInfo extends ServiceProviderBase {
       $ids = $this->entityTypeManager
         ->getStorage('entity_view_display')
         ->getQuery()
+        ->accessCheck(TRUE)
         ->condition('id', 'node.', 'STARTS_WITH')
         ->condition('mode', 'amp')
         ->condition('status', TRUE)

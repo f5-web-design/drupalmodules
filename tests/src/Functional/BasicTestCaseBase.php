@@ -19,7 +19,7 @@ abstract class BasicTestCaseBase extends BrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  public static $modules = [
+  protected static $modules = [
     'amp',
     'node',
     'metatag',
@@ -31,7 +31,7 @@ abstract class BasicTestCaseBase extends BrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     // Make sure to complete the normal setup steps first.
     parent::setUp();
 
@@ -53,7 +53,7 @@ abstract class BasicTestCaseBase extends BrowserTestBase {
     $this->assertSession()->statusCodeEquals(200);
 
     // Confirm that the front page contains the standard text.
-    $this->assertText('Welcome to Drupal');
+    $this->assertSession()->pageTextContains('Welcome to Drupal');
   }
 
 }

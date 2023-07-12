@@ -5,6 +5,7 @@ namespace Drupal\amp\Form;
 use Drupal\amp\EntityTypeInfo;
 use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Extension\ModuleExtensionList;
 use Drupal\Core\Extension\ThemeHandlerInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -67,7 +68,7 @@ class AmpSettingsForm extends ConfigFormBase {
   private function getThemeOptions() {
     // Get all available themes.
     $themes = $this->themeHandler->rebuildThemeData();
-    uasort($themes, 'system_sort_modules_by_info_name');
+    uasort($themes, [ModuleExtensionList::class, 'sortByName']);
     $theme_options = [];
 
     foreach ($themes as $theme) {

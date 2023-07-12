@@ -14,7 +14,7 @@ class AmpAdSense extends BasicTestCaseBase {
   /**
    * {@inheritdoc}
    */
-  public static $modules = [
+  protected static $modules = [
     'adsense',
     'amp',
     'node',

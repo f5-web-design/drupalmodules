@@ -14,7 +14,7 @@ class Amp extends BasicTestCaseBase {
   /**
    * {@inheritdoc}
    */
-  public static $modules = [
+  protected static $modules = [
     'amp',
     'node',
     'metatag',

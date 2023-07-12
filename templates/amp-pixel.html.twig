@@ -15,8 +15,10 @@
   {% set src = 'https://' ~ domain ~ '/' ~ query_string ~ '?' %}
   {% set activeSubs = [] %}
 
-  {% for sub, subDetails in subs if subDetails.active == true %}
-    {% set activeSubs =  activeSubs|merge([(sub)]) %}
+  {% for sub, subDetails in subs %}
+    {% if subDetails.active == true %}
+      {% set activeSubs =  activeSubs|merge([(sub)]) %}
+    {% endif %}
   {% endfor %}
 
   {% if activeSubs|length > 0 %}

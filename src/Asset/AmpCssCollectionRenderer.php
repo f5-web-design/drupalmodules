@@ -7,6 +7,7 @@ use Drupal\amp\Service\AMPService;
 use Drupal\Core\State\StateInterface;
 use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\File\FileUrlGeneratorInterface;
 
 /**
  * Renders CSS assets.
@@ -72,6 +73,8 @@ class AmpCssCollectionRenderer extends CssCollectionRenderer {
    *
    * @param \Drupal\Core\Asset\CssCollectionRenderer $cssCollectionRenderer
    *   The decorated CssCollectionRenderer.
+   * @param \Drupal\Core\File\FileUrlGeneratorInterface $file_url_generator
+   *   The file URL generator.
    * @param \Drupal\Core\State\StateInterface $state
    *   The state key/value store.
    * @param \Drupal\amp\Service\AMPService $ampService
@@ -83,6 +86,7 @@ class AmpCssCollectionRenderer extends CssCollectionRenderer {
    */
   public function __construct(
   CssCollectionRenderer $cssCollectionRenderer,
+  FileUrlGeneratorInterface $file_url_generator,
   StateInterface $state,
   AMPService $ampService,
   RendererInterface $renderer,
@@ -93,7 +97,7 @@ class AmpCssCollectionRenderer extends CssCollectionRenderer {
     $this->renderer = $renderer;
     $this->configFactory = $configFactory;
 
-    parent::__construct($state);
+    parent::__construct($state, $file_url_generator);
   }
 
   /**
@@ -343,7 +347,7 @@ class AmpCssCollectionRenderer extends CssCollectionRenderer {
       $last = $path;
       $path = preg_replace('`(^|/)(?!\.\./)([^/]+)/\.\./`', '$1', $path);
     }
-    return 'url(' . file_url_transform_relative(file_create_url($path)) . ')';
+    return 'url(' . $this->fileUrlGenerator->generateString($path) . ')';
   }
 
 }

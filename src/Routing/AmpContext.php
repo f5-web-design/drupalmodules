@@ -2,6 +2,7 @@
 
 namespace Drupal\amp\Routing;
 
+use Drupal\node\NodeInterface;
 use Drupal\Core\DependencyInjection\ServiceProviderBase;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Theme\ThemeManager;
@@ -101,7 +102,7 @@ class AmpContext extends ServiceProviderBase {
     }
     // If we have an entity, we can test it.
     $route_entity = $this->routeEntity($routeMatch);
-    if ($entity instanceof \Drupal\node\NodeInterface || $route_entity instanceof \Drupal\node\NodeInterface) {
+    if ($entity instanceof NodeInterface || $route_entity instanceof NodeInterface) {
       $entity_is_amp = $this->entityIsAmp($entity);
       $route_entity_is_amp = $this->entityIsAmp($route_entity);
       return $entity_is_amp || $route_entity_is_amp;
@@ -206,7 +207,7 @@ class AmpContext extends ServiceProviderBase {
    * @return boolean
    */
   public function entityIsAmp($entity) {
-    if ($entity instanceof \Drupal\node\NodeInterface) {
+    if ($entity instanceof NodeInterface) {
       $type = $entity->getType();
       return $this->entityTypeInfo->isAmpEnabledType($type);
     }
