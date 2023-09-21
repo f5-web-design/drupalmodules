@@ -2,7 +2,7 @@
     'use strict';
     Drupal.behaviors.personalization = {
         attach: function (context, settings) {
-            $(context).find('body').once('paragraph--type--smart').each(
+            $(once('paragraph--type--smart', 'body', context)).each(
                 function () {
                     $(".paragraph--type--smart-content-paragraph").hide();
                     $('.field--name-field-default').hide();

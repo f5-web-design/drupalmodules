@@ -6,8 +6,8 @@ personalization:
     js/personalization.js: { }
   dependencies:
     - core/jquery
-    - core/jquery.cookie
+    - core/js.cookie
     - core/drupal
     - core/drupal.ajax
     - core/drupalSettings
-    - core/jquery.once
+    - core/once

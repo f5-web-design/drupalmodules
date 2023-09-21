@@ -44,7 +44,7 @@ class GeobrowserDerivative extends DeriverBase {
    *   Array of Regions.
    */
   public static function getRegionOptions() {
-    $file = fopen(drupal_get_path('module', 'smart_content_paragraphs') . '/data/region_codes.csv', "r");
+    $file = fopen(\Drupal::service('extension.list.module')->getPath('smart_content_paragraphs') . '/data/region_codes.csv', "r");
     $region_codes = [];
     while (!feof($file)) {
       $regions = fgetcsv($file);
