@@ -101,3 +101,22 @@ function smart_content_paragraphs_update_8001() {
   FieldStorageConfig::loadByName($entity_type, $field_name)->save();
 
 }
+
+/**
+ * Implements hook_uninstall().
+ */
+function smart_content_paragraphs_update_8002() {
+  $extension_config = \Drupal::configFactory()->getEditable('core.extension');
+  $module = $extension_config->get('module');
+  if (isset($module['pce_geocloudflare'])) {
+    unset($module['pce_geocloudflare']);
+    $extension_config->set('module', $module);
+    $extension_config->save();
+  }
+  \Drupal::keyValue('system.schema')->delete('pce_geocloudflare');
+
+  $module_list = array(
+    'pce_geolocation',
+  );
+  \Drupal::service('module_installer')->install($module_list);
+}

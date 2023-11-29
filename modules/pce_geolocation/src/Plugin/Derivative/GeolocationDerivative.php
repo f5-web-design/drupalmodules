@@ -1,26 +1,26 @@
 <?php
 
-namespace Drupal\pce_geocloudflare\Plugin\Derivative;
+namespace Drupal\pce_geolocation\Plugin\Derivative;
 
 use Drupal\Component\Plugin\Derivative\DeriverBase;
 use Symfony\Component\Intl\Countries;
 use Symfony\Component\Intl\Locales;
 
 /**
- * Deriver for GeocloudflareCondition.
+ * Deriver for GeolocationCondition.
  *
  * Provides a deriver for
- * Drupal\pce_geocloudflare\Plugin\smart_content\Condition\GeocloudflareCondition.
- * Definitions are based on user's browser's cloudflare header value.
+ * Drupal\pce_geolocation\Plugin\smart_content\Condition\GeolocationCondition.
+ * Definitions are based on user's browser's header value.
  */
-class GeocloudflareDerivative extends DeriverBase {
+class GeolocationDerivative extends DeriverBase {
 
   /**
    * {@inheritdoc}
    */
   public function getDerivativeDefinitions($base_plugin_definition) {
     $this->derivatives = [
-      'cloudfarecountry' => [
+      'countryName' => [
         'label' => 'Country Name',
         'type' => 'select',
         'options_callback' => [get_class($this), 'getOptions'],

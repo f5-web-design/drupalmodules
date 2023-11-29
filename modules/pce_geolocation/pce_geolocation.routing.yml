@@ -1,0 +1,7 @@
+pce_geolocation.settings:
+  path: '/admin/config/content/smart_content_paragraphs/pce_geolocation/settings'
+  defaults:
+    _form: '\Drupal\pce_geolocation\Form\SettingsForm'
+    _title: 'Smart Content Paragraphs - Geolocation Settings'
+  requirements:
+    _permission: 'administer site configuration'

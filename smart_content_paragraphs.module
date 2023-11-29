@@ -19,9 +19,21 @@ use Drupal\smart_content\SegmentSetStorage\SegmentSetStorageManager;
  */
 function smart_content_paragraphs_preprocess_node(&$variables) {
   $variables['#attached']['library'][] = 'smart_content_paragraphs/personalization';
-  $cloudflare_country_code = isset($_SERVER["HTTP_CF_IPCOUNTRY"]) ? $_SERVER["HTTP_CF_IPCOUNTRY"] : '';
+  $config = \Drupal::config('smart_content_paragraphs.pce_geolocation.settings');
+  if (!empty($config->get('country_http_header_property'))) {
+    $country_http_headers = explode(',', isset($_SERVER[$config->get('country_http_header')]) ? $_SERVER[$config->get('country_http_header')] : '');
+    $headers = [];
+    foreach ($country_http_headers as $value) {
+      list($key,$value) = explode('=', $value);
+      $headers[$key] = $value;
+      $country_code = $headers[$config->get('country_http_header_property')];
+    }
+  }
+  else {
+    $country_code = isset($_SERVER[$config->get('country_http_header')]) ? $_SERVER[$config->get('country_http_header')] : '';
+  }
   $variables['#attached']['drupalSettings']['smartContentParagraphs']['nid'][] = $variables['node']->id();
-  $variables['#attached']['drupalSettings']['smartContentParagraphs']['cloudflareCountryCode'] = $cloudflare_country_code;
+  $variables['#attached']['drupalSettings']['smartContentParagraphs']['CountryCode'] = $country_code;
 }
 
 /**

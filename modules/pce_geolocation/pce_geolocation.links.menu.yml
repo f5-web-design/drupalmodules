@@ -1,0 +1,5 @@
+pce_geolocation.settings:
+  title: 'Smart Content Paragraphs'
+  description: 'Configure settings related to the functionality of the Smart Content Paragraphs.'
+  route_name: pce_geolocation.settings
+  parent: system.admin_config_content

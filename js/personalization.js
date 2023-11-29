@@ -21,7 +21,7 @@
                         region: getCookie('region'),
                         latitude: getCookie('latitude'),
                         longitude: getCookie('longitude'),
-                        cloudfarecountry: settings.smartContentParagraphs.cloudflareCountryCode,
+                        countryCode: settings.smartContentParagraphs.CountryCode,
                         pages: getPages(),
                     };
 

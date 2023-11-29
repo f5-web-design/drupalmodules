@@ -1,0 +1,16 @@
+<?php
+
+/**
+ * Implements hook_uninstall().
+ */
+function pce_geolocation_update_8100() {
+}
+
+
+/**
+ * Implements hook_uninstall().
+ */
+function pce_geolocation_uninstall() {
+  // Remove the smart content paragraphs - Gelocation configurations.
+  \Drupal::configFactory()->getEditable('smart_content_paragraphs.pce_geolocation.settings')->delete();
+}
