@@ -2,12 +2,12 @@
 
 namespace Drupal\amp\Asset;
 
-use Drupal\Core\Asset\CssCollectionRenderer;
 use Drupal\amp\Service\AMPService;
-use Drupal\Core\State\StateInterface;
-use Drupal\Core\Render\RendererInterface;
+use Drupal\Core\Asset\CssCollectionRenderer;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\File\FileUrlGeneratorInterface;
+use Drupal\Core\Render\RendererInterface;
+use Drupal\Core\State\StateInterface;
 
 /**
  * Renders CSS assets.
@@ -46,6 +46,13 @@ class AmpCssCollectionRenderer extends CssCollectionRenderer {
    * @var \Drupal\Core\Asset\CssCollectionRenderer
    */
   protected $cssCollectionRenderer;
+
+  /**
+   * The state service.
+   *
+   * @var \Drupal\Core\State\StateInterface
+   */
+  protected $state;
 
   /**
    * AMP Service.
@@ -165,7 +172,7 @@ class AmpCssCollectionRenderer extends CssCollectionRenderer {
         else {
           // Strip any querystring off the url.
           if (strpos($url, '?') !== FALSE) {
-            list($url, $query) = explode('?', $url);
+            [$url, $query] = explode('?', $url);
           }
           $css = file_get_contents(DRUPAL_ROOT . $url);
           if ($needs_rewrite) {
