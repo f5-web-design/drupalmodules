@@ -2,7 +2,7 @@ name: Smart Content Paragraphs
 type: module
 description: Provides an API and toolset for personalizing user experiences for anonymous and authenticated users.
 package: 'Smart Content Paragraphs'
-core_version_requirement: ^9.4 || ^10
+core_version_requirement: ^9.4 || ^10 || ^11
 dependencies:
   - smart_content:smart_content
   - drupal:paragraphs
