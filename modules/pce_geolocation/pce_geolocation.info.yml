@@ -2,7 +2,7 @@ name: PCE Data Plugin - Geolocation
 type: module
 description: Enables Geolocation conditions based on Header values for Smart Content
 package: 'Smart Content Paragraphs'
-core_version_requirement: ^9.4 || ^10
+core_version_requirement: ^9.4 || ^10 || ^11
 dependencies:
   - smart_content:smart_content
   - smart_content_paragraphs:smart_content_paragraphs

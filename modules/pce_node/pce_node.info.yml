@@ -2,7 +2,7 @@ name: PCE Data Plugin - Node
 type: module
 description: Enables node conditions for Smart Content
 package: 'Smart Content Paragraphs'
-core_version_requirement: ^9.4 || ^10
+core_version_requirement: ^9.4 || ^10 || ^11
 dependencies:
   - smart_content:smart_content
   - smart_content_paragraphs:smart_content_paragraphs
