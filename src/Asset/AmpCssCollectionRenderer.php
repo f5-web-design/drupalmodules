@@ -4,6 +4,7 @@ namespace Drupal\amp\Asset;
 
 use Drupal\amp\Service\AMPService;
 use Drupal\Core\Asset\CssCollectionRenderer;
+use Drupal\Core\Asset\AssetQueryStringInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\File\FileUrlGeneratorInterface;
 use Drupal\Core\Render\RendererInterface;
@@ -43,9 +44,9 @@ class AmpCssCollectionRenderer extends CssCollectionRenderer {
   /**
    * The inner service that we are decorating.
    *
-   * @var \Drupal\Core\Asset\CssCollectionRenderer
+   * @var \Drupal\Core\Asset\AssetQueryStringInterface
    */
-  protected $cssCollectionRenderer;
+  protected AssetQueryStringInterface $assetQueryString;
 
   /**
    * The state service.
@@ -78,7 +79,7 @@ class AmpCssCollectionRenderer extends CssCollectionRenderer {
   /**
    * Constructs a CssCollectionRenderer.
    *
-   * @param \Drupal\Core\Asset\CssCollectionRenderer $cssCollectionRenderer
+   * @param \Drupal\Core\Asset\AssetQueryStringInterface $cssCollectionRenderer
    *   The decorated CssCollectionRenderer.
    * @param \Drupal\Core\File\FileUrlGeneratorInterface $file_url_generator
    *   The file URL generator.
@@ -92,19 +93,19 @@ class AmpCssCollectionRenderer extends CssCollectionRenderer {
    *   Configuration factory.
    */
   public function __construct(
-  CssCollectionRenderer $cssCollectionRenderer,
+  AssetQueryStringInterface $assetQueryString,
   FileUrlGeneratorInterface $file_url_generator,
   StateInterface $state,
   AMPService $ampService,
   RendererInterface $renderer,
   ConfigFactoryInterface $configFactory) {
-    $this->cssCollectionRenderer = $cssCollectionRenderer;
+    $this->assetQueryString = $assetQueryString;
     $this->state = $state;
     $this->ampService = $ampService;
     $this->renderer = $renderer;
     $this->configFactory = $configFactory;
 
-    parent::__construct($state, $file_url_generator);
+    parent::__construct($assetQueryString, $file_url_generator);
   }
 
   /**
