@@ -1,7 +1,7 @@
 name: Accelerated Mobile Pages (AMP)
 type: module
 description: Google AMP integration
-core_version_requirement: '^8.7.7 || ^9 || ^10'
+core_version_requirement: '^8.7.7 || ^9 || ^10 || ^11'
 package: AMP
 dependencies:
   - drupal:image
